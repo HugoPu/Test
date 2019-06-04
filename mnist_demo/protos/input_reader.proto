@@ -1,0 +1,8 @@
+syntax = "proto3";
+
+package protos;
+
+message InputReader {
+  bool shuffle = 1;
+  string input_file_path = 2;
+}
