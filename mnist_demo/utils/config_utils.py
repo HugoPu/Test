@@ -17,9 +17,10 @@ def get_configs_from_pipeline_file(pipeline_config_path, config_override=None):
 
 def create_configs_from_pipeline_proto(pipeline_config):
     configs = {}
+    configs['model'] = pipeline_config.model
     configs['train_config'] = pipeline_config.train_config
     configs['eval_config'] = pipeline_config.eval_config
-    configs['train_input_config'] = pipeline_config.train_input_config
-    configs['eval_input_config'] = pipeline_config.eval_input_config
+    configs['train_input_config'] = pipeline_config.train_input_reader
+    configs['eval_input_config'] = pipeline_config.eval_input_reader
 
     return configs

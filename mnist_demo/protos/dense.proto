@@ -1,0 +1,7 @@
+syntax = "proto3";
+
+package protos;
+
+message Dense {
+  uint32 num_units = 1;
+}

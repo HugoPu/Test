@@ -1,0 +1,11 @@
+syntax = "proto3";
+
+package protos;
+
+import "protos/dense.proto";
+
+message Model {
+  oneof model {
+    Dense dense = 1;
+  }
+}
