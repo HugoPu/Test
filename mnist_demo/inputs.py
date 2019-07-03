@@ -24,5 +24,8 @@ def create_eval_input_fn(eval_config, eval_input_config):
     return _eval_input_fn
 
 def create_predict_input_fn(predict_config, predict_input_config):
+    mnist = input_data.read_data_sets(predict_input_config.input_file_path, one_hot=True).test
+    _predict_fn = tf.estimator.inputs.numpy_input_fn(
 
+    )
     return None

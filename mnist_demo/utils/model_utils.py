@@ -1,3 +1,4 @@
+import os
 import tensorflow as tf
 import copy
 import functools
@@ -127,10 +128,33 @@ def create_train_and_eval_specs(train_input_fn,
     exporter = tf.estimator.FinalExporter(
         name=exporter_name, serving_input_receiver_fn=predict_input_fn)
     eval_spec = tf.estimator.EvalSpec(
-        name='eval', input_fn=eval_input_fn, steps=1, exporters=None, throttle_secs=0)
+        name='eval', input_fn=eval_input_fn, steps=None, exporters=None, throttle_secs=0)
     if eval_on_train_data:
         eval_spec = tf.estimator.EvalSpec(
             name='eval_on_train',input_fn=eval_on_train_input_fn, steps=None)
 
     return train_spec, eval_spec
 
+def continuous_eval(estimator, model_dir, input_fn, train_steps, name):
+    def terminate_eval():
+        tf.logging.info('Terminating eval after 180 seconds of no checkpoints')
+        return True
+
+    for ckpt in tf.contrib.training.checkpoints_iterator(
+        model_dir, min_interval_secs=180, timeout=None, timeout_fn=terminate_eval):
+
+        tf.logging.info('Starting Evaluation.')
+
+        try:
+            eval_results = estimator.evaluate(
+                input_fn=input_fn, steps=None, checkpoint_path=ckpt, name=name)
+            tf.logging.info('Eval results:%s' % eval_results)
+
+            # Terminate eval job when final checkpoint is reached
+            current_step = int(os.path.basename(ckpt).split('-')[1])
+            if current_step >= train_steps:
+                tf.logging.info('Evaluation finished after training step %d' % current_step)
+                break
+
+        except tf.errors.NotFoundError:
+            tf.logging.info('Checkpoint %s no longer exists, skipping checkpoint' % ckpt)

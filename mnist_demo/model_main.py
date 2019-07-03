@@ -1,22 +1,24 @@
 import tensorflow as tf
 
-from mnist_demo.utils import model_utils
+from mnist_demo.utils import model_utils, log_uitls
 from mnist_demo.model import model_hparams
 
 flags = tf.flags
 
 tf.logging.set_verbosity(tf.logging.INFO)
 
-flags.DEFINE_string('model_dir', '/sdb/hugo/PythonWorkspace/Test/mnist_demo/ouput', 'Path to output model dictory')
+flags.DEFINE_string('model_dir', '/sdb/hugo/PythonWorkspace/Test/mnist_demo/output', 'Path to output model dictory')
 flags.DEFINE_string('pipeline_config_path', '/sdb/hugo/PythonWorkspace/Test/mnist_demo/hparams/pipeline.config', 'Path to pipeline file.')
 flags.DEFINE_integer('num_train_steps', 10000, 'Number of train steps.')
 flags.DEFINE_boolean(
     'hparams_overrides', False, 'Hyperparameter overrides, '
     'represented as a string containing comma-separated '
     'hparam_name=value pairs.')
-flags.DEFINE_string('checkpoint_dir', None, 'Path to directory holding a checkpoint. If `checkpoint_dir` '
+flags.DEFINE_integer('eval_interval', 500, 'Number of steps between each evaluation')
+flags.DEFINE_string('checkpoint_dir', '/sdb/hugo/PythonWorkspace/Test/mnist_demo/output', 'Path to directory holding a checkpoint. If `checkpoint_dir` '
                                             'is provided. this binary operates in eval-only mode, writing'
                                             'resulting metrics to `model_dir')
+flags.DEFINE_boolean('eval_training_data', False, '')
 flags.DEFINE_boolean('run_once', False, 'IF running in eval-only mode, whether to run just one round'
                                        'of eval vs running continuously (default)')
 
@@ -25,7 +27,8 @@ FLAGS = flags.FLAGS
 def main(argv):
     flags.mark_flag_as_required('model_dir')
     flags.mark_flag_as_required('pipeline_config_path')
-    config = tf.estimator.RunConfig(model_dir=FLAGS.model_dir, save_checkpoints_steps=500)
+    config = tf.estimator.RunConfig(model_dir=FLAGS.model_dir, save_checkpoints_steps=FLAGS.eval_interval)
+    log_uitls.create_logger(model_dir=FLAGS.model_dir)
 
     train_and_eval_dict = model_utils.create_estimator_and_inputs(
         run_config=config,
